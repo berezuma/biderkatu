@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="eu">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>¡A Multiplicar! - Proporción 1:1</title>
+    <title>Biderkatu! - Hizkuntza Anitzak</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -26,6 +26,7 @@
             overflow: hidden;
             width: 100%;
             touch-action: manipulation;
+            font-family: system-ui, -apple-system, sans-serif;
         }
     </style>
 </head>
@@ -35,6 +36,117 @@
     <script type="text/babel">
         const { useState, useEffect, useRef, useCallback } = React;
 
+        const translations = {
+            eu: {
+                title: "Biderkatu!",
+                prompt: "Zer egin nahi duzu gaur?",
+                study: "Ikasi",
+                play: "Jolastu (Mix)",
+                exam: "Azterketa",
+                back: "Atzera",
+                chooseTable: "Aukeratu taula bat",
+                tableOf: "Taula: ",
+                doExam: "Azterketa egin!",
+                examTitle: "Azterketa: ",
+                score: "Puntuak",
+                correct: "Ondo!",
+                wrong: "Erantzuna: ",
+                done: "Amaitu duzu!",
+                finalScore: "Azken puntuazioa",
+                mainMenu: "Menu nagusia"
+            },
+            ca: {
+                title: "A Multiplicar!",
+                prompt: "Què vols fer avui?",
+                study: "Estudiar",
+                play: "Jugar (Mix)",
+                exam: "Examen",
+                back: "Tornar",
+                chooseTable: "Tria una taula",
+                tableOf: "Taula del ",
+                doExam: "Fer examen!",
+                examTitle: "Examen de la taula... ",
+                score: "Punts",
+                correct: "Molt bé!",
+                wrong: "Era: ",
+                done: "Has acabat!",
+                finalScore: "Puntuació final",
+                mainMenu: "Menú principal"
+            },
+            gl: {
+                title: "A Multiplicar!",
+                prompt: "Que queres facer hoxe?",
+                study: "Estudar",
+                play: "Xogar (Mix)",
+                exam: "Facer Exame",
+                back: "Volver",
+                chooseTable: "Escolle unha táboa",
+                tableOf: "Táboa do ",
+                doExam: "Facer exame!",
+                examTitle: "Exame da táboa... ",
+                score: "Puntos",
+                correct: "Moi ben!",
+                wrong: "Era: ",
+                done: "Remataches!",
+                finalScore: "Puntuación final",
+                mainMenu: "Menú principal"
+            },
+            es: {
+                title: "¡A Multiplicar!",
+                prompt: "¿Qué quieres hacer hoy?",
+                study: "Estudiar",
+                play: "Jugar (Mix)",
+                exam: "Hacer Examen",
+                back: "Volver",
+                chooseTable: "Elige una tabla",
+                tableOf: "Tabla del ",
+                doExam: "¡Examen!",
+                examTitle: "Examen de la tabla... ",
+                score: "Puntos",
+                correct: "¡Bien!",
+                wrong: "Era: ",
+                done: "¡Terminado!",
+                finalScore: "Puntuación final",
+                mainMenu: "Menú principal"
+            },
+            fr: {
+                title: "Multiplication!",
+                prompt: "Que veux-tu faire ?",
+                study: "Étudier",
+                play: "Jouer (Mix)",
+                exam: "Examen",
+                back: "Retour",
+                chooseTable: "Choisis une table",
+                tableOf: "Table de ",
+                doExam: "Passer l'examen !",
+                examTitle: "Examen de la table... ",
+                score: "Points",
+                correct: "Bravo !",
+                wrong: "C'était: ",
+                done: "Terminé !",
+                finalScore: "Score final",
+                mainMenu: "Menu principal"
+            },
+            en: {
+                title: "Multiply!",
+                prompt: "What to do today?",
+                study: "Study",
+                play: "Play (Mix)",
+                exam: "Take Exam",
+                back: "Back",
+                chooseTable: "Choose a table",
+                tableOf: "Table of ",
+                doExam: "Start Exam!",
+                examTitle: "Exam for table... ",
+                score: "Score",
+                correct: "Correct!",
+                wrong: "Answer: ",
+                done: "Well done!",
+                finalScore: "Final score",
+                mainMenu: "Main Menu"
+            }
+        };
+
         const Icon = ({ name, size = 24, className = "" }) => {
             useEffect(() => {
                 if (window.lucide) window.lucide.createIcons();
@@ -43,6 +155,7 @@
         };
 
         const App = () => {
+            const [lang, setLang] = useState('eu');
             const [view, setView] = useState('menu');
             const [selectedTable, setSelectedTable] = useState(null);
             const [score, setScore] = useState(0);
@@ -52,6 +165,9 @@
             const [inputAnswer, setInputAnswer] = useState('');
             const [examDeck, setExamDeck] = useState([]);
             const timerRef = useRef(null);
+
+            const t = translations[lang];
+            const langOrder = ['eu', 'ca', 'gl', 'es', 'fr', 'en'];
 
             const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -85,18 +201,13 @@
                     const delay = feedback === 'correct' ? 1000 : 1800;
                     timerRef.current = setTimeout(() => {
                         const limit = view === 'exam' ? examDeck.length : 10;
-                        
                         if (questionCount + 1 < limit) {
                             const nextIndex = questionCount + 1;
                             setQuestionCount(nextIndex);
                             setFeedback('none');
                             setInputAnswer('');
-                            
-                            if (view === 'quiz') {
-                                generateQuizQuestion();
-                            } else {
-                                generateExamQuestion(selectedTable, nextIndex);
-                            }
+                            if (view === 'quiz') generateQuizQuestion();
+                            else generateExamQuestion(selectedTable, nextIndex);
                         } else {
                             setView('results');
                         }
@@ -143,18 +254,29 @@
             const ViewWrapper = ({ children, bgColor = "bg-white", className = "" }) => (
                 <div className={`h-screen w-full flex flex-col items-center justify-between p-4 overflow-hidden ${bgColor} ${className}`}>
                     {children}
+                    <footer className="mt-2 text-[8px] md:text-[10px] text-gray-500 text-center max-w-lg leading-tight opacity-70">
+                        <p>© 2026 Beñat Erezuma. Lan hau <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.eu" target="_blank" rel="noopener noreferrer" className="underline">Creative Commons Aitortu-PartekatuBerdin 4.0 Nazioarteko Lizentzia</a> baten mende dago.</p>
+                        <p className="mt-1">Webgune hau GitHub Pages-en ostatatuta dago. Kontuan izan GitHub-ek zerbitzariaren erregistroak jaso ditzakeela, IP helbideak barne, segurtasun- eta mantentze-helburuetarako. Informazio gehiago: <a href="https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement" target="_blank" rel="noopener noreferrer" className="underline">GitHub-en Pribatutasun Adierazpena</a>.</p>
+                    </footer>
                 </div>
             );
 
             if (view === 'menu') return (
-                <ViewWrapper bgColor="bg-gradient-to-b from-pink-100 to-purple-200" className="animate-in justify-center gap-8">
-                    <h1 className="text-4xl md:text-6xl font-black text-purple-600 drop-shadow-md text-center">¡A Multiplicar!</h1>
+                <ViewWrapper bgColor="bg-gradient-to-b from-pink-100 to-purple-200" className="animate-in justify-center gap-6">
+                    <div className="flex flex-wrap justify-center gap-2 mb-2 max-w-xs">
+                        {langOrder.map(l => (
+                            <button key={l} onClick={() => setLang(l)} className={`px-3 py-1.5 rounded-lg text-sm font-black uppercase tracking-widest transition-all ${lang === l ? 'bg-purple-600 text-white shadow-lg scale-110' : 'bg-white/60 text-purple-600 hover:bg-white'}`}>
+                                {l}
+                            </button>
+                        ))}
+                    </div>
+                    <h1 className="text-4xl md:text-6xl font-black text-purple-600 drop-shadow-md text-center">{t.title}</h1>
                     <div className="bg-white/80 backdrop-blur-sm p-6 rounded-[2rem] shadow-xl border-4 border-purple-300 w-full max-w-sm">
-                        <p className="text-lg text-gray-600 mb-6 font-bold text-center">¿Qué quieres hacer hoy?</p>
+                        <p className="text-lg text-gray-600 mb-6 font-bold text-center">{t.prompt}</p>
                         <div className="space-y-3">
-                            <button onClick={() => setView('learn')} className="w-full flex items-center justify-center gap-3 bg-blue-400 hover:bg-blue-500 text-white text-xl font-bold py-4 rounded-2xl transition-all active:scale-95"><Icon name="book-open" /> Estudiar</button>
-                            <button onClick={startQuiz} className="w-full flex items-center justify-center gap-3 bg-green-400 hover:bg-green-500 text-white text-xl font-bold py-4 rounded-2xl transition-all active:scale-95"><Icon name="gamepad-2" /> Jugar (Mix)</button>
-                            <button onClick={() => setView('exam_menu')} className="w-full flex items-center justify-center gap-3 bg-orange-400 hover:bg-orange-500 text-white text-xl font-bold py-4 rounded-2xl transition-all active:scale-95"><Icon name="calculator" /> Hacer Examen</button>
+                            <button onClick={() => setView('learn')} className="w-full flex items-center justify-center gap-3 bg-blue-400 text-white text-xl font-bold py-4 rounded-2xl transition-all active:scale-95 shadow-md"><Icon name="book-open" /> {t.study}</button>
+                            <button onClick={startQuiz} className="w-full flex items-center justify-center gap-3 bg-green-400 text-white text-xl font-bold py-4 rounded-2xl transition-all active:scale-95 shadow-md"><Icon name="gamepad-2" /> {t.play}</button>
+                            <button onClick={() => setView('exam_menu')} className="w-full flex items-center justify-center gap-3 bg-orange-400 text-white text-xl font-bold py-4 rounded-2xl transition-all active:scale-95 shadow-md"><Icon name="calculator" /> {t.exam}</button>
                         </div>
                     </div>
                 </ViewWrapper>
@@ -164,13 +286,13 @@
                 <ViewWrapper bgColor="bg-blue-50" className="animate-in">
                     <div className="w-full max-w-lg flex flex-col h-full items-center">
                         <div className="w-full flex items-center justify-between mb-2">
-                            <button onClick={goBackToMenu} className="text-gray-600 font-bold bg-white px-4 py-2 rounded-full shadow-md text-xs">Volver</button>
-                            <h2 className="text-xl font-black text-gray-700">Elige una tabla</h2>
+                            <button onClick={goBackToMenu} className="text-gray-600 font-bold bg-white px-4 py-2 rounded-full shadow-md text-xs">{t.back}</button>
+                            <h2 className="text-xl font-black text-gray-700">{t.chooseTable}</h2>
                             <div className="w-12"></div>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 w-full flex-1 content-center">
                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
-                                <button key={n} onClick={() => setSelectedTable(n)} className="aspect-square bg-white border-b-4 border-gray-200 hover:border-purple-300 rounded-2xl shadow-lg flex items-center justify-center text-4xl font-black text-gray-400 hover:text-purple-500 transition-all active:translate-y-1">{n}</button>
+                                <button key={n} onClick={() => setSelectedTable(n)} className="aspect-square bg-white border-b-4 border-gray-200 rounded-2xl shadow-lg flex items-center justify-center text-4xl font-black text-gray-400 transition-all active:translate-y-1">{n}</button>
                             ))}
                         </div>
                         <div className="h-4"></div>
@@ -181,19 +303,17 @@
             if (view === 'learn' && selectedTable) return (
                 <ViewWrapper bgColor="bg-blue-50" className="animate-in">
                     <div className="w-full max-w-md flex flex-col h-full items-center">
-                        <button onClick={() => setSelectedTable(null)} className="self-start mb-2 text-blue-600 font-bold bg-white px-5 py-2 rounded-full shadow-sm text-sm">Volver</button>
-                        <h2 className="text-2xl font-black text-blue-500 mb-2 bg-white px-6 py-2 rounded-2xl shadow-sm border-b-2 border-blue-100">Tabla del {selectedTable}</h2>
-                        
-                        <div className="bg-white p-2 rounded-3xl shadow-lg border-2 border-blue-100 w-full flex-1 flex flex-col justify-center mb-3 overflow-hidden">
+                        <button onClick={() => setSelectedTable(null)} className="self-start mb-2 text-blue-600 font-bold bg-white px-5 py-2 rounded-full shadow-sm text-sm">{t.back}</button>
+                        <h2 className="text-2xl font-black text-blue-500 mb-2 bg-white px-6 py-2 rounded-2xl shadow-sm border-b-2 border-blue-100">{t.tableOf}{selectedTable}</h2>
+                        <div className="bg-white p-2 rounded-3xl shadow-lg border-2 border-blue-100 w-full flex-1 flex flex-col justify-center mb-3">
                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
-                                <div key={n} className="flex justify-between items-center text-lg font-bold text-gray-500 py-1 border-b border-dashed border-gray-50 last:border-0 px-4">
-                                    <span>{selectedTable} x {n}</span>
-                                    <span className="text-blue-600 text-xl">= {selectedTable * n}</span>
+                                <div key={n} className="flex justify-center items-center gap-6 text-lg font-bold text-gray-500 py-1 border-b border-dashed border-gray-50 last:border-0 px-4">
+                                    <span className="w-24 text-right">{selectedTable} x {n}</span>
+                                    <span className="text-blue-600 text-xl w-24 text-left">= {selectedTable * n}</span>
                                 </div>
                             ))}
                         </div>
-                        
-                        <button onClick={() => startExam(selectedTable)} className="w-full bg-orange-400 text-white text-lg font-bold py-3 rounded-xl shadow-lg border-b-4 border-orange-600 mb-2">¡Hacer Examen!</button>
+                        <button onClick={() => startExam(selectedTable)} className="w-full bg-orange-400 text-white text-lg font-bold py-3 rounded-xl shadow-lg border-b-4 border-orange-600 mb-2">{t.doExam}</button>
                     </div>
                 </ViewWrapper>
             );
@@ -202,13 +322,13 @@
                 <ViewWrapper bgColor="bg-orange-50" className="animate-in">
                     <div className="w-full max-w-lg flex flex-col h-full items-center">
                         <div className="w-full flex items-center justify-between mb-2">
-                            <button onClick={goBackToMenu} className="text-gray-600 font-bold bg-white px-4 py-2 rounded-full shadow-md text-xs">Volver</button>
-                            <h2 className="text-xl font-black text-orange-600">Examen de la tabla...</h2>
+                            <button onClick={goBackToMenu} className="text-gray-600 font-bold bg-white px-4 py-2 rounded-full shadow-md text-xs">{t.back}</button>
+                            <h2 className="text-xl font-black text-orange-600">{t.examTitle}</h2>
                             <div className="w-12"></div>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 w-full flex-1 content-center">
                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
-                                <button key={n} onClick={() => startExam(n)} className="aspect-square bg-white border-b-4 border-gray-200 hover:border-orange-300 rounded-2xl shadow-lg flex items-center justify-center text-4xl font-black text-gray-400 hover:text-orange-500 transition-all active:translate-y-1">{n}</button>
+                                <button key={n} onClick={() => startExam(n)} className="aspect-square bg-white border-b-4 border-gray-200 rounded-2xl shadow-lg flex items-center justify-center text-4xl font-black text-gray-400 transition-all active:translate-y-1">{n}</button>
                             ))}
                         </div>
                         <div className="h-4"></div>
@@ -227,45 +347,29 @@
                             <div className="flex items-center gap-1 text-yellow-500 font-black text-lg"><Icon name="star" size={20} /> {score}</div>
                             <div className={`font-bold px-3 py-1 rounded-lg text-sm ${isExam ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>{questionCount + 1} / {total}</div>
                         </div>
-                        
                         <div className={`bg-white rounded-[2rem] p-6 shadow-xl text-center border-b-[8px] w-full max-w-sm relative flex-1 flex flex-col justify-center transition-all ${feedback === 'correct' ? 'border-green-400' : feedback === 'wrong' ? 'border-red-400 shake' : isExam ? 'border-orange-200' : 'border-green-200'}`}>
-                            {feedback === 'correct' && <div className="absolute -top-4 left-0 right-0 flex justify-center"><span className="bg-green-500 text-white font-black px-6 py-1 rounded-full shadow-lg text-sm">¡Bien!</span></div>}
-                            {feedback === 'wrong' && <div className="absolute -top-4 left-0 right-0 flex justify-center"><span className="bg-red-500 text-white font-black px-6 py-1 rounded-full shadow-lg text-sm">Era {currentQuestion.correctAnswer}</span></div>}
-                            
+                            {feedback === 'correct' && <div className="absolute -top-4 left-0 right-0 flex justify-center"><span className="bg-green-500 text-white font-black px-6 py-1 rounded-full shadow-lg text-sm">{t.correct}</span></div>}
+                            {feedback === 'wrong' && <div className="absolute -top-4 left-0 right-0 flex justify-center"><span className="bg-red-500 text-white font-black px-6 py-1 rounded-full shadow-lg text-sm">{t.wrong}{currentQuestion.correctAnswer}</span></div>}
                             <div className="text-6xl font-black text-gray-700 flex justify-center gap-3">
                                 <span>{currentQuestion.num1}</span>
                                 <span className="text-gray-200">×</span>
                                 <span>{currentQuestion.num2}</span>
                             </div>
-
                             <div className="mt-6 flex justify-center h-16">
                                 {isExam ? (
                                     <div className={`text-5xl font-black px-6 rounded-xl border-4 min-w-[120px] flex items-center justify-center ${feedback === 'none' ? 'bg-gray-50 border-orange-100' : feedback === 'correct' ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'}`}>
-                                        {inputAnswer}
-                                        <span className={feedback === 'none' ? 'animate-pulse text-gray-200' : 'hidden'}>|</span>
+                                        {inputAnswer}<span className={feedback === 'none' ? 'animate-pulse text-gray-200' : 'hidden'}>|</span>
                                     </div>
                                 ) : (
                                     <div className="text-4xl font-black text-gray-200 bg-gray-50 px-6 py-1 rounded-xl border-2 border-gray-100">= ?</div>
                                 )}
                             </div>
                         </div>
-
                         <div className="w-full max-w-sm mt-4">
                             {!isExam ? (
                                 <div className="grid gap-3 pb-2">
                                     {currentQuestion.options.map((opt, i) => (
-                                        <button 
-                                            key={i} 
-                                            disabled={feedback !== 'none'} 
-                                            onClick={() => processAnswer(opt === currentQuestion.correctAnswer)} 
-                                            className={`py-4 rounded-xl text-3xl font-black shadow-md border-b-4 transition-all ${
-                                                feedback === 'none' 
-                                                ? 'bg-white hover:bg-green-50 border-gray-200' 
-                                                : opt === currentQuestion.correctAnswer 
-                                                    ? 'bg-green-500 text-white border-green-700' 
-                                                    : 'bg-white text-gray-200'
-                                            }`}
-                                        >
+                                        <button key={i} disabled={feedback !== 'none'} onClick={() => processAnswer(opt === currentQuestion.correctAnswer)} className={`py-4 rounded-xl text-3xl font-black shadow-md border-b-4 transition-all ${feedback === 'none' ? 'bg-white hover:bg-green-50 border-gray-200' : opt === currentQuestion.correctAnswer ? 'bg-green-500 text-white border-green-700' : 'bg-white text-gray-200'}`}>
                                             {opt}
                                         </button>
                                     ))}
@@ -273,7 +377,7 @@
                             ) : (
                                 <div className="grid grid-cols-3 gap-2 pb-2">
                                     {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => (
-                                        <button key={n} onClick={() => handleNumpad(n.toString())} className="bg-white text-orange-600 text-2xl font-black py-3 rounded-xl shadow-sm border-b-2 border-orange-100 active:bg-orange-50">{n}</button>
+                                        <button key={n} onClick={() => handleNumpad(n.toString())} className="bg-white text-orange-600 text-2xl font-black py-3 rounded-xl border-b-2 border-orange-100 active:bg-orange-50">{n}</button>
                                     ))}
                                     <button onClick={() => handleNumpad('DEL')} className="bg-red-50 text-red-500 flex items-center justify-center rounded-xl border-b-2 border-red-100"><Icon name="delete" size={24} /></button>
                                     <button onClick={() => handleNumpad('0')} className="bg-white text-orange-600 text-2xl font-black py-3 rounded-xl border-b-2 border-orange-100">0</button>
@@ -289,12 +393,12 @@
                 <ViewWrapper bgColor="bg-purple-50" className="justify-center animate-in">
                     <div className="bg-white p-8 rounded-[2rem] shadow-2xl max-w-sm w-full border-4 border-purple-200 text-center">
                         <Icon name="trophy" size={60} className="text-yellow-400 mx-auto mb-4" />
-                        <h2 className="text-3xl font-black text-purple-600 mb-4">¡Terminado!</h2>
+                        <h2 className="text-3xl font-black text-purple-600 mb-4">{t.done}</h2>
                         <div className="bg-purple-50 rounded-2xl p-6 mb-6 border-2 border-purple-100">
-                            <div className="text-xs text-purple-400 font-black uppercase mb-1">Puntos</div>
+                            <div className="text-xs text-purple-400 font-black uppercase mb-1">{t.finalScore}</div>
                             <div className="text-6xl font-black text-purple-600">{score}</div>
                         </div>
-                        <button onClick={goBackToMenu} className="w-full bg-purple-500 text-white font-bold py-4 rounded-xl text-lg shadow-lg border-b-4 border-purple-700">Menú Principal</button>
+                        <button onClick={goBackToMenu} className="w-full bg-purple-500 text-white font-bold py-4 rounded-xl text-lg shadow-lg border-b-4 border-purple-700">{t.mainMenu}</button>
                     </div>
                 </ViewWrapper>
             );
