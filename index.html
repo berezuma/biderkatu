@@ -23,15 +23,29 @@
             margin: 0;
             padding: 0;
             height: 100%;
-            overflow: hidden;
             width: 100%;
-            touch-action: manipulation;
+            overscroll-behavior: none; /* Saihestu "bounce" efektua mugikorrean */
             font-family: system-ui, -apple-system, sans-serif;
+            background-color: #f3f4f6;
+        }
+        #root {
+            height: 100%;
+            width: 100%;
+            position: fixed; /* Edukia pantailara finkatu */
+            overflow: hidden;
+        }
+        /* Scroll barra ezkutatu baina funtzionala mantendu (estetika) */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
 </head>
 <body>
-    <div id="root" class="h-full w-full"></div>
+    <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useRef, useCallback } = React;
@@ -251,32 +265,45 @@
                 else if (inputAnswer.length < 3) setInputAnswer(prev => prev + val);
             };
 
+            // Layout konpondua: Scrollbar kudeaketa eta overflow zuzena
+            // ALDAKETA: 'justify-center' kendu da eta 'm-auto' gehitu da. 
+            // Honek 1 eta 2 zenbakiak pantailaren goiko partean ezkutatzea ekiditen du mugikorrean.
             const ViewWrapper = ({ children, bgColor = "bg-white", className = "" }) => (
-                <div className={`h-screen w-full flex flex-col items-center justify-between p-4 overflow-hidden ${bgColor} ${className}`}>
-                    {children}
-                    <footer className="mt-2 text-[8px] md:text-[10px] text-gray-500 text-center max-w-lg leading-tight opacity-70">
+                <div className={`fixed inset-0 w-full h-full flex flex-col ${bgColor} ${className}`}>
+                    {/* Eduki nagusia - Scrollable area */}
+                    <div className="flex-1 w-full overflow-y-auto overflow-x-hidden p-2 md:p-4 scrollbar-hide flex flex-col">
+                         {/* Spacer to center content vertically if screen is large enough, handled via m-auto. */}
+                         <div className="w-full m-auto flex flex-col items-center p-2">
+                            {children}
+                         </div>
+                    </div>
+                    
+                    {/* Footer - Fixed at bottom, never shrinks */}
+                    <footer className="shrink-0 w-full py-2 text-[8px] md:text-[10px] text-gray-500 text-center leading-tight opacity-70 bg-white/30 backdrop-blur-sm z-10">
                         <p>© 2026 Beñat Erezuma. Lan hau <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.eu" target="_blank" rel="noopener noreferrer" className="underline">Creative Commons Aitortu-PartekatuBerdin 4.0 Nazioarteko Lizentzia</a> baten mende dago.</p>
-                        <p className="mt-1">Webgune hau GitHub Pages-en ostatatuta dago. Kontuan izan GitHub-ek zerbitzariaren erregistroak jaso ditzakeela, IP helbideak barne, segurtasun- eta mantentze-helburuetarako. Informazio gehiago: <a href="https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement" target="_blank" rel="noopener noreferrer" className="underline">GitHub-en Pribatutasun Adierazpena</a>.</p>
+                        <p className="mt-1">GitHub Pages-en ostatatuta.</p>
                     </footer>
                 </div>
             );
 
             if (view === 'menu') return (
-                <ViewWrapper bgColor="bg-gradient-to-b from-pink-100 to-purple-200" className="animate-in justify-center gap-6">
-                    <div className="flex flex-wrap justify-center gap-2 mb-2 max-w-xs">
-                        {langOrder.map(l => (
-                            <button key={l} onClick={() => setLang(l)} className={`px-3 py-1.5 rounded-lg text-sm font-black uppercase tracking-widest transition-all ${lang === l ? 'bg-purple-600 text-white shadow-lg scale-110' : 'bg-white/60 text-purple-600 hover:bg-white'}`}>
-                                {l}
-                            </button>
-                        ))}
-                    </div>
-                    <h1 className="text-4xl md:text-6xl font-black text-purple-600 drop-shadow-md text-center">{t.title}</h1>
-                    <div className="bg-white/80 backdrop-blur-sm p-6 rounded-[2rem] shadow-xl border-4 border-purple-300 w-full max-w-sm">
-                        <p className="text-lg text-gray-600 mb-6 font-bold text-center">{t.prompt}</p>
-                        <div className="space-y-3">
-                            <button onClick={() => setView('learn')} className="w-full flex items-center justify-center gap-3 bg-blue-400 text-white text-xl font-bold py-4 rounded-2xl transition-all active:scale-95 shadow-md"><Icon name="book-open" /> {t.study}</button>
-                            <button onClick={startQuiz} className="w-full flex items-center justify-center gap-3 bg-green-400 text-white text-xl font-bold py-4 rounded-2xl transition-all active:scale-95 shadow-md"><Icon name="gamepad-2" /> {t.play}</button>
-                            <button onClick={() => setView('exam_menu')} className="w-full flex items-center justify-center gap-3 bg-orange-400 text-white text-xl font-bold py-4 rounded-2xl transition-all active:scale-95 shadow-md"><Icon name="calculator" /> {t.exam}</button>
+                <ViewWrapper bgColor="bg-gradient-to-b from-pink-100 to-purple-200" className="animate-in">
+                    <div className="flex flex-col items-center justify-center w-full min-h-[min-content] py-4">
+                        <div className="flex flex-wrap justify-center gap-2 mb-4 max-w-xs">
+                            {langOrder.map(l => (
+                                <button key={l} onClick={() => setLang(l)} className={`px-3 py-1.5 rounded-lg text-sm font-black uppercase tracking-widest transition-all ${lang === l ? 'bg-purple-600 text-white shadow-lg scale-110' : 'bg-white/60 text-purple-600 hover:bg-white'}`}>
+                                    {l}
+                                </button>
+                            ))}
+                        </div>
+                        <h1 className="text-4xl md:text-6xl font-black text-purple-600 drop-shadow-md text-center mb-6">{t.title}</h1>
+                        <div className="bg-white/80 backdrop-blur-sm p-6 rounded-[2rem] shadow-xl border-4 border-purple-300 w-full max-w-sm">
+                            <p className="text-lg text-gray-600 mb-6 font-bold text-center">{t.prompt}</p>
+                            <div className="space-y-3">
+                                <button onClick={() => setView('learn')} className="w-full flex items-center justify-center gap-3 bg-blue-400 text-white text-xl font-bold py-4 rounded-2xl transition-all active:scale-95 shadow-md"><Icon name="book-open" /> {t.study}</button>
+                                <button onClick={startQuiz} className="w-full flex items-center justify-center gap-3 bg-green-400 text-white text-xl font-bold py-4 rounded-2xl transition-all active:scale-95 shadow-md"><Icon name="gamepad-2" /> {t.play}</button>
+                                <button onClick={() => setView('exam_menu')} className="w-full flex items-center justify-center gap-3 bg-orange-400 text-white text-xl font-bold py-4 rounded-2xl transition-all active:scale-95 shadow-md"><Icon name="calculator" /> {t.exam}</button>
+                            </div>
                         </div>
                     </div>
                 </ViewWrapper>
@@ -284,54 +311,59 @@
 
             if (view === 'learn' && !selectedTable) return (
                 <ViewWrapper bgColor="bg-blue-50" className="animate-in">
-                    <div className="w-full max-w-lg flex flex-col h-full items-center">
-                        <div className="w-full flex items-center justify-between mb-2">
+                    <div className="w-full max-w-lg flex flex-col items-center py-4">
+                        <div className="w-full flex items-center justify-between mb-4 px-2">
                             <button onClick={goBackToMenu} className="text-gray-600 font-bold bg-white px-4 py-2 rounded-full shadow-md text-xs">{t.back}</button>
                             <h2 className="text-xl font-black text-gray-700">{t.chooseTable}</h2>
                             <div className="w-12"></div>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 w-full flex-1 content-center">
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 w-full">
                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
                                 <button key={n} onClick={() => setSelectedTable(n)} className="aspect-square bg-white border-b-4 border-gray-200 rounded-2xl shadow-lg flex items-center justify-center text-4xl font-black text-gray-400 transition-all active:translate-y-1">{n}</button>
                             ))}
                         </div>
-                        <div className="h-4"></div>
                     </div>
                 </ViewWrapper>
             );
 
             if (view === 'learn' && selectedTable) return (
                 <ViewWrapper bgColor="bg-blue-50" className="animate-in">
-                    <div className="w-full max-w-md flex flex-col h-full items-center">
-                        <button onClick={() => setSelectedTable(null)} className="self-start mb-2 text-blue-600 font-bold bg-white px-5 py-2 rounded-full shadow-sm text-sm">{t.back}</button>
-                        <h2 className="text-2xl font-black text-blue-500 mb-2 bg-white px-6 py-2 rounded-2xl shadow-sm border-b-2 border-blue-100">{t.tableOf}{selectedTable}</h2>
-                        <div className="bg-white p-2 rounded-3xl shadow-lg border-2 border-blue-100 w-full flex-1 flex flex-col justify-center mb-3">
-                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
-                                <div key={n} className="flex justify-center items-center gap-6 text-lg font-bold text-gray-500 py-1 border-b border-dashed border-gray-50 last:border-0 px-4">
-                                    <span className="w-24 text-right">{selectedTable} x {n}</span>
-                                    <span className="text-blue-600 text-xl w-24 text-left">= {selectedTable * n}</span>
-                                </div>
-                            ))}
+                    <div className="w-full max-w-md flex flex-col items-center py-2 h-full justify-start">
+                        <div className="w-full flex justify-between items-center mb-2 px-1">
+                            <button onClick={() => setSelectedTable(null)} className="text-blue-600 font-bold bg-white px-5 py-2 rounded-full shadow-sm text-sm">{t.back}</button>
+                            <h2 className="text-xl md:text-2xl font-black text-blue-500 bg-white px-4 py-1 rounded-2xl shadow-sm border-b-2 border-blue-100">{t.tableOf}{selectedTable}</h2>
                         </div>
-                        <button onClick={() => startExam(selectedTable)} className="w-full bg-orange-400 text-white text-lg font-bold py-3 rounded-xl shadow-lg border-b-4 border-orange-600 mb-2">{t.doExam}</button>
+                        
+                        {/* Scrollable list container */}
+                        <div className="flex-1 w-full overflow-y-auto mb-3 bg-white rounded-3xl shadow-lg border-2 border-blue-100">
+                             <div className="p-2">
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                                    <div key={n} className="flex justify-center items-center gap-6 text-lg font-bold text-gray-500 py-3 border-b border-dashed border-gray-100 last:border-0 px-4">
+                                        <span className="w-24 text-right">{selectedTable} x {n}</span>
+                                        <span className="text-blue-600 text-xl w-24 text-left">= {selectedTable * n}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        <button onClick={() => startExam(selectedTable)} className="shrink-0 w-full bg-orange-400 text-white text-lg font-bold py-3 rounded-xl shadow-lg border-b-4 border-orange-600 mb-2">{t.doExam}</button>
                     </div>
                 </ViewWrapper>
             );
 
             if (view === 'exam_menu') return (
                 <ViewWrapper bgColor="bg-orange-50" className="animate-in">
-                    <div className="w-full max-w-lg flex flex-col h-full items-center">
-                        <div className="w-full flex items-center justify-between mb-2">
+                    <div className="w-full max-w-lg flex flex-col items-center py-4">
+                        <div className="w-full flex items-center justify-between mb-4 px-2">
                             <button onClick={goBackToMenu} className="text-gray-600 font-bold bg-white px-4 py-2 rounded-full shadow-md text-xs">{t.back}</button>
                             <h2 className="text-xl font-black text-orange-600">{t.examTitle}</h2>
                             <div className="w-12"></div>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 w-full flex-1 content-center">
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 w-full">
                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
                                 <button key={n} onClick={() => startExam(n)} className="aspect-square bg-white border-b-4 border-gray-200 rounded-2xl shadow-lg flex items-center justify-center text-4xl font-black text-gray-400 transition-all active:translate-y-1">{n}</button>
                             ))}
                         </div>
-                        <div className="h-4"></div>
                     </div>
                 </ViewWrapper>
             );
@@ -342,12 +374,13 @@
                 const total = isExam ? examDeck.length : 10;
                 return (
                     <ViewWrapper bgColor={isExam ? 'bg-orange-50' : 'bg-green-50'}>
-                        <div className="w-full max-w-md flex justify-between items-center bg-white p-3 rounded-xl shadow-sm mb-4">
+                        <div className="w-full max-w-md flex justify-between items-center bg-white p-3 rounded-xl shadow-sm mb-4 shrink-0">
                             <button onClick={goBackToMenu} className="text-gray-400"><Icon name="arrow-left" size={20} /></button>
                             <div className="flex items-center gap-1 text-yellow-500 font-black text-lg"><Icon name="star" size={20} /> {score}</div>
                             <div className={`font-bold px-3 py-1 rounded-lg text-sm ${isExam ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>{questionCount + 1} / {total}</div>
                         </div>
-                        <div className={`bg-white rounded-[2rem] p-6 shadow-xl text-center border-b-[8px] w-full max-w-sm relative flex-1 flex flex-col justify-center transition-all ${feedback === 'correct' ? 'border-green-400' : feedback === 'wrong' ? 'border-red-400 shake' : isExam ? 'border-orange-200' : 'border-green-200'}`}>
+                        
+                        <div className={`bg-white rounded-[2rem] p-6 shadow-xl text-center border-b-[8px] w-full max-w-sm relative shrink-0 flex flex-col justify-center transition-all mb-4 ${feedback === 'correct' ? 'border-green-400' : feedback === 'wrong' ? 'border-red-400 shake' : isExam ? 'border-orange-200' : 'border-green-200'}`}>
                             {feedback === 'correct' && <div className="absolute -top-4 left-0 right-0 flex justify-center"><span className="bg-green-500 text-white font-black px-6 py-1 rounded-full shadow-lg text-sm">{t.correct}</span></div>}
                             {feedback === 'wrong' && <div className="absolute -top-4 left-0 right-0 flex justify-center"><span className="bg-red-500 text-white font-black px-6 py-1 rounded-full shadow-lg text-sm">{t.wrong}{currentQuestion.correctAnswer}</span></div>}
                             <div className="text-6xl font-black text-gray-700 flex justify-center gap-3">
@@ -365,9 +398,10 @@
                                 )}
                             </div>
                         </div>
-                        <div className="w-full max-w-sm mt-4">
+
+                        <div className="w-full max-w-sm shrink-0 pb-4">
                             {!isExam ? (
-                                <div className="grid gap-3 pb-2">
+                                <div className="grid gap-3">
                                     {currentQuestion.options.map((opt, i) => (
                                         <button key={i} disabled={feedback !== 'none'} onClick={() => processAnswer(opt === currentQuestion.correctAnswer)} className={`py-4 rounded-xl text-3xl font-black shadow-md border-b-4 transition-all ${feedback === 'none' ? 'bg-white hover:bg-green-50 border-gray-200' : opt === currentQuestion.correctAnswer ? 'bg-green-500 text-white border-green-700' : 'bg-white text-gray-200'}`}>
                                             {opt}
@@ -375,7 +409,7 @@
                                     ))}
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-3 gap-2 pb-2">
+                                <div className="grid grid-cols-3 gap-2">
                                     {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => (
                                         <button key={n} onClick={() => handleNumpad(n.toString())} className="bg-white text-orange-600 text-2xl font-black py-3 rounded-xl border-b-2 border-orange-100 active:bg-orange-50">{n}</button>
                                     ))}
@@ -391,7 +425,7 @@
 
             if (view === 'results') return (
                 <ViewWrapper bgColor="bg-purple-50" className="justify-center animate-in">
-                    <div className="bg-white p-8 rounded-[2rem] shadow-2xl max-w-sm w-full border-4 border-purple-200 text-center">
+                    <div className="bg-white p-8 rounded-[2rem] shadow-2xl max-w-sm w-full border-4 border-purple-200 text-center my-auto">
                         <Icon name="trophy" size={60} className="text-yellow-400 mx-auto mb-4" />
                         <h2 className="text-3xl font-black text-purple-600 mb-4">{t.done}</h2>
                         <div className="bg-purple-50 rounded-2xl p-6 mb-6 border-2 border-purple-100">
